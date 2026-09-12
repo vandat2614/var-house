@@ -1,0 +1,35 @@
+# Byte-compiled / optimized / cache files
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+*.pyd
+
+# Virtual Environment
+.venv/
+env/
+venv/
+
+# Environment Variables & Secrets
+.env
+
+# Linters & Caches
+.ruff_cache/
+.ruff-cache/
+.pytest_cache/
+
+# IDEs & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Project folders to ignore
+archive/
+dashboard/
+data/
+
+# Logs & Database volumes
+logs/
+*.log
+postgres_data/

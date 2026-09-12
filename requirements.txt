@@ -1,0 +1,7 @@
+requests>=2.31.0
+sqlmodel>=0.0.14
+pydantic>=2.0.0
+confluent-kafka>=2.0.0
+
+pyiceberg[pyarrow]
+python-dotenv>=1.0.0
