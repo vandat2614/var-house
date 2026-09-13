@@ -476,6 +476,45 @@ def transform_players(content: dict, match_id: str) -> list[dict]:
                     "country": str(country) if country else None,
                 })
     return result
+
+
+# ---------------------------------------------------------------------------
+# Team Stats Transform (Top Stats only)
+# ---------------------------------------------------------------------------
+
+def transform_top_stats(content: dict, match_id: str) -> list[dict]:
+    """
+    Extract the 'top_stats' group from match statistics.
+
+    Extracts: Ball possession, xG, Total shots, Shots on target,
+    Touches in opp box, Big chances, Big chances missed,
+    Accurate passes, Yellow cards, Corners.
+
+    Path: content["stats"]["Periods"]["All"]["stats"] -> group key="top_stats"
+    """
+    result = []
+    periods = content.get("stats", {}).get("Periods", {})
+    all_period = periods.get("All", {})
+    stat_groups = all_period.get("stats", [])
+
+    for group in stat_groups:
+        if group.get("key") != "top_stats":
+            continue
+        for stat in group.get("stats", []):
+            vals = stat.get("stats", [])
+            if len(vals) < 2:
+                continue
+            result.append({
+                "match_id":    match_id,
+                "period":      "All",
+                "group":       "Top stats",
+                "stat_key":    stat.get("key", ""),
+                "stat_title":  stat.get("title", ""),
+                "home_value":  str(vals[0]) if vals[0] is not None else None,
+                "away_value":  str(vals[1]) if vals[1] is not None else None,
+            })
+    return result
+
 # ---------------------------------------------------------------------------
 # Combined
 # ---------------------------------------------------------------------------
@@ -504,13 +543,6 @@ def transform_match_detail(
         "players":      transform_players(content, match_id),
         "events":       transform_events(content, match_id),
         "lineup":       transform_lineups(content, match_id),
-        # "stats":        transform_stats(content, match_id), # FROZEN (Bottleneck)
-        # "player_stats": transform_player_stats(content, match_id), # FROZEN (Bottleneck)
-        "stats": [],
+        "stats":        transform_top_stats(content, match_id),
         "player_stats": [],
     }
-
-
-
-
-
