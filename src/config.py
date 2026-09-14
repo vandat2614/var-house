@@ -22,6 +22,10 @@ ICEBERG_CATALOG_DB = os.path.join(DATA_DIR, "iceberg", "iceberg_catalog.db")
 
 # --- Kafka ---
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+KAFKA_SECURITY_PROTOCOL = os.getenv("KAFKA_SECURITY_PROTOCOL", "PLAINTEXT")
+KAFKA_SSL_CA_LOCATION = os.getenv("KAFKA_SSL_CA_LOCATION", "")
+KAFKA_SSL_CERT_LOCATION = os.getenv("KAFKA_SSL_CERT_LOCATION", "")
+KAFKA_SSL_KEY_LOCATION = os.getenv("KAFKA_SSL_KEY_LOCATION", "")
 
 # --- Crawler Configs ---
 CURRENT_SEASON = os.getenv("CURRENT_SEASON", "2026-2027")

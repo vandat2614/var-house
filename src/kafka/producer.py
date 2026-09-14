@@ -9,7 +9,7 @@ import json
 import logging
 from typing import Any, Dict, Optional
 
-from src.config import KAFKA_BOOTSTRAP_SERVERS
+from src.config import KAFKA_BOOTSTRAP_SERVERS, KAFKA_SECURITY_PROTOCOL, KAFKA_SSL_CA_LOCATION, KAFKA_SSL_CERT_LOCATION, KAFKA_SSL_KEY_LOCATION
 
 from confluent_kafka import Producer
 
@@ -46,6 +46,13 @@ class BaseKafkaProducer:
         if additional_config:
             config.update(additional_config)
 
+        if KAFKA_SECURITY_PROTOCOL == "SSL":
+            config.update({
+                'security.protocol': 'SSL',
+                'ssl.ca.location': KAFKA_SSL_CA_LOCATION,
+                'ssl.certificate.location': KAFKA_SSL_CERT_LOCATION,
+                'ssl.key.location': KAFKA_SSL_KEY_LOCATION,
+            })
         self.producer = Producer(config)
         logger.info("Initialized Kafka Producer connected to %s", bootstrap_servers or KAFKA_BOOTSTRAP_SERVERS)
 
