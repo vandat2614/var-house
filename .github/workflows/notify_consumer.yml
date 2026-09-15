@@ -3,7 +3,7 @@ name: Notify Consumer
 on:
   # Triggers when Crawl Match Details completes successfully
   workflow_run:
-    workflows: ["Transform Consumer"]
+    workflows: ["Crawl Match Details"]
     types:
       - completed
   workflow_dispatch:
@@ -44,6 +44,7 @@ jobs:
         run: |
           export PYTHONPATH="."
           python src/stream_pipeline/telegram_notifier.py
+
 
 
 
