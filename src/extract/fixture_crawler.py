@@ -58,10 +58,11 @@ def _fetch_raw_fixtures(league_slug: str) -> List[Dict[str, Any]]:
 
 def _process_and_load_dimensions(all_matches: List[Dict[str, Any]], league_slug: str) -> None:
     """Transforms raw fixtures into Match/Team dimensions and loads them into Iceberg."""
-    try:
-        from src.transform.fixture_transformer import transform_fixtures, transform_teams_from_fixtures
-        from src.load.iceberg_loader import load_dim_matches, load_dim_teams
+    from src.transform.fixture_transformer import transform_fixtures, transform_teams_from_fixtures
+    from src.load.iceberg_loader import load_dim_matches, load_dim_teams
 
+    # --- 1. Transform Block ---
+    try:
         logger.info(f"  [Transform] Extracting Dimensions for {league_slug}")
         matches = transform_fixtures(all_matches, league_slug)
         teams = transform_teams_from_fixtures(all_matches)
@@ -69,20 +70,24 @@ def _process_and_load_dimensions(all_matches: List[Dict[str, Any]], league_slug:
         # Save transformed copies to data/transformed/
         season_safe = get_season_safe(CURRENT_SEASON)
         trans_dir = os.path.join(TRANSFORMED_DIR, "fixtures", season_safe)
-        # os.makedirs(trans_dir, exist_ok=True)
         
         matches_data = [m if isinstance(m, dict) else (m.model_dump() if hasattr(m, 'model_dump') else m.dict()) for m in matches]
-        # teams_data = [t if isinstance(t, dict) else (t.model_dump() if hasattr(t, 'model_dump') else t.dict()) for t in teams]
+        teams_data = [t if isinstance(t, dict) else (t.model_dump() if hasattr(t, 'model_dump') else t.dict()) for t in teams]
         
         save_json(matches_data, os.path.join(trans_dir, f"{league_slug}_matches.json"))
-        # save_json(teams_data, os.path.join(trans_dir, f"{league_slug}_teams.json"))
+        save_json(teams_data, os.path.join(trans_dir, f"{league_slug}_teams.json"))
         logger.info(f"  [Transform] Saved transformed JSON to {trans_dir}")
+    except Exception as e:
+        logger.error(f"Failed to transform fixtures for {league_slug}: {e}")
+        return  # Stop execution if transform fails
 
+    # --- 2. Load Block ---
+    try:
         logger.info(f"  [Load] Upserting {len(matches)} matches and {len(teams)} teams into Iceberg")
         load_dim_matches(matches)
         load_dim_teams(teams)
     except Exception as e:
-        logger.error(f"Failed to transform/load fixtures for {league_slug}: {e}")
+        logger.error(f"Failed to load fixtures into Iceberg for {league_slug}: {e}")
 
 
 # ---------------------------------------------------------------------------
@@ -91,7 +96,6 @@ def _process_and_load_dimensions(all_matches: List[Dict[str, Any]], league_slug:
 
 def crawl_fixtures(
     league_slug: str,
-    force_refresh: bool = False,
 ) -> List[Dict[str, Any]]:
     """
     Crawl all fixtures for a given league in the current season.
@@ -100,11 +104,6 @@ def crawl_fixtures(
         raise ValueError(f"Unknown league: '{league_slug}'. Available: {list(LEAGUES)}")
 
     cache_path = _cache_path(league_slug)
-
-    if not force_refresh and file_exists(cache_path):
-        logger.error(f"[Cache] Loaded fixtures from: {cache_path}")
-        return load_json(cache_path)
-
     all_matches = _fetch_raw_fixtures(league_slug)
 
     save_json(all_matches, cache_path)
@@ -115,9 +114,7 @@ def crawl_fixtures(
     return all_matches
 
 
-def crawl_all_fixtures(
-    force_refresh: bool = False,
-) -> Dict[str, List[Dict[str, Any]]]:
+def crawl_all_fixtures() -> Dict[str, List[Dict[str, Any]]]:
     """
     Crawl fixtures for all 5 leagues in the current season.
     """
@@ -126,7 +123,6 @@ def crawl_all_fixtures(
         try:
             results[league_slug] = crawl_fixtures(
                 league_slug,
-                force_refresh=force_refresh,
             )
         except Exception as exc:
             logger.info(f"  [Error] {league_slug}: {exc}")

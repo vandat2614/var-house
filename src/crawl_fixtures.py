@@ -16,7 +16,7 @@ def main():
     
     logger.info("Starting Fixture Crawl...")
     # force_refresh=True forces fetching from the web rather than using cached JSON
-    crawl_all_fixtures(force_refresh=True)
+    crawl_all_fixtures()
     
     logger.info("Fixture Crawl Complete! Data loaded directly to Iceberg Dimensions.")
 
