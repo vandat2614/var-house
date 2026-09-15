@@ -1,9 +1,9 @@
-name: Consumer: Transformer
+name: Notify Consumer
 
 on:
   # Triggers when Crawl Match Details completes successfully
   workflow_run:
-    workflows: ["Crawl Match Details"]
+    workflows: ["Transform Consumer"]
     types:
       - completed
   workflow_dispatch:
@@ -18,17 +18,17 @@ jobs:
         with:
           python-version: '3.11'
           
-      - name: Install dependencies
+      - name: Notify Consumer
         run: pip install -r requirements.txt
         
-      - name: Setup Kafka SSL Certs
+      - name: Notify Consumer
         run: |
           mkdir -p kafka_certs
           echo "${{ secrets.KAFKA_CA_PEM }}" > kafka_certs/ca.pem
           echo "${{ secrets.KAFKA_SERVICE_CERT }}" > kafka_certs/service.cert
           echo "${{ secrets.KAFKA_SERVICE_KEY }}" > kafka_certs/service.key
           
-      - name: Run Consumer Pipeline
+      - name: Notify Consumer
         env:
           ENDPOINT: ${{ secrets.ENDPOINT }}
           ACCESS_KEY_ID: ${{ secrets.ACCESS_KEY_ID }}
@@ -43,6 +43,9 @@ jobs:
           KAFKA_SSL_KEY_LOCATION: kafka_certs/service.key
         run: |
           export PYTHONPATH="."
-          python src/stream_pipeline/stream_transformer.py
+          python src/stream_pipeline/telegram_notifier.py
+
+
+
 
 
