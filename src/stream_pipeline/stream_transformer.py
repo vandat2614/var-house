@@ -61,7 +61,7 @@ class StreamTransformer:
         """Start the consumer loop. Blocks until interrupted or error."""
         logger.info("Starting Stream Transformer...")
         try:
-            self.consumer.consume_stream(self.process_raw_match)
+            self.consumer.consume_stream(self.process_raw_match, idle_timeout=120.0)
         except KeyboardInterrupt:
             pass
         finally:

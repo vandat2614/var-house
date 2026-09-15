@@ -12,13 +12,27 @@ _SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 # Fallback to 2 levels up if PROJECT_ROOT is not set or empty
 PROJECT_ROOT = os.getenv("PROJECT_ROOT") or os.path.abspath(os.path.join(_SRC_DIR, ".."))
 
-DATA_DIR = os.path.join(PROJECT_ROOT, "data")
+S3_ENDPOINT = os.getenv("ENDPOINT", "")
+S3_BUCKET_NAME = os.getenv("BUCKET_NAME", "var-house-prod")
+
+if S3_ENDPOINT and S3_BUCKET_NAME:
+    DATA_DIR = f"s3://{S3_BUCKET_NAME}/data"
+else:
+    DATA_DIR = os.path.join(PROJECT_ROOT, "data")
 RAW_FIXTURES_DIR = os.path.join(DATA_DIR, "raw", "fixtures")
 RAW_MATCHES_DIR = os.path.join(DATA_DIR, "raw", "matches")
 TRANSFORMED_DIR = os.path.join(DATA_DIR, "transformed")
 
 ICEBERG_WAREHOUSE_DIR = os.path.join(DATA_DIR, "iceberg", "warehouse")
 ICEBERG_CATALOG_DB = os.path.join(DATA_DIR, "iceberg", "iceberg_catalog.db")
+
+# --- Cloud Storage (Neon.tech + Cloudflare R2) ---
+ICEBERG_POSTGRES_URI = os.getenv("POSTGRES_URI", "")
+S3_ENDPOINT = os.getenv("ENDPOINT", "")
+S3_ACCESS_KEY_ID = os.getenv("ACCESS_KEY_ID", "")
+S3_SECRET_ACCESS_KEY = os.getenv("SECRET_ACCESS_KEY", "")
+S3_BUCKET_NAME = os.getenv("BUCKET_NAME", "var-house-prod")
+
 
 # --- Kafka ---
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")

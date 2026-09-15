@@ -30,7 +30,7 @@ RAW_DIR = RAW_FIXTURES_DIR
 def _cache_path(league_slug: str) -> str:
     season_safe = get_season_safe(CURRENT_SEASON)
     path = os.path.join(RAW_DIR, season_safe, f"{league_slug}.json")
-    os.makedirs(os.path.dirname(path), exist_ok=True)
+    
     return path
 
 
@@ -69,7 +69,7 @@ def _process_and_load_dimensions(all_matches: List[Dict[str, Any]], league_slug:
         # Save transformed copies to data/transformed/
         season_safe = get_season_safe(CURRENT_SEASON)
         trans_dir = os.path.join(TRANSFORMED_DIR, "fixtures", season_safe)
-        os.makedirs(trans_dir, exist_ok=True)
+        # os.makedirs(trans_dir, exist_ok=True)
         
         matches_data = [m if isinstance(m, dict) else (m.model_dump() if hasattr(m, 'model_dump') else m.dict()) for m in matches]
         # teams_data = [t if isinstance(t, dict) else (t.model_dump() if hasattr(t, 'model_dump') else t.dict()) for t in teams]
@@ -101,7 +101,7 @@ def crawl_fixtures(
 
     cache_path = _cache_path(league_slug)
 
-    if not force_refresh and os.path.exists(cache_path):
+    if not force_refresh and file_exists(cache_path):
         logger.error(f"[Cache] Loaded fixtures from: {cache_path}")
         return load_json(cache_path)
 

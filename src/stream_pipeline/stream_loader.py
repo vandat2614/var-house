@@ -46,7 +46,7 @@ class StreamLoader:
         """Start the consumer loop. Blocks until interrupted or error."""
         logger.info("Starting Stream Loader...")
         try:
-            self.consumer.consume_stream(self.process_transformed_match)
+            self.consumer.consume_stream(self.process_transformed_match, idle_timeout=120.0)
         except KeyboardInterrupt:
             pass
 

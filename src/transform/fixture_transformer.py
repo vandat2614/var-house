@@ -146,9 +146,9 @@ def save_fixtures(records: List[Dict[str, Any]], league_slug: str) -> str:
     Returns:
         Path of the saved file.
     """
-    os.makedirs(TRANSFORMED_DIR, exist_ok=True)
+    # os.makedirs(TRANSFORMED_DIR, exist_ok=True)
     path = os.path.join(TRANSFORMED_DIR, f"{league_slug}_{CURRENT_SEASON}.json")
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(records, f, ensure_ascii=False, indent=2)
+    from src.utils import save_json
+    save_json(records, path)
     logger.info(f"[Saved Transformed Fixtures] {len(records)} records -> {path}")
     return path

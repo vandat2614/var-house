@@ -1,0 +1,49 @@
+name: Process Match Data (Consumer)
+
+on:
+  # Triggers when Crawl Match Details completes successfully
+  workflow_run:
+    workflows: ["Crawl Match Details"]
+    types:
+      - completed
+  workflow_dispatch:
+
+jobs:
+  consume-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+        
+      - name: Setup Kafka SSL Certs
+        run: |
+          mkdir -p aiven_test
+          echo "${{ secrets.KAFKA_CA_PEM }}" > aiven_test/ca.pem
+          echo "${{ secrets.KAFKA_SERVICE_CERT }}" > aiven_test/service.cert
+          echo "${{ secrets.KAFKA_SERVICE_KEY }}" > aiven_test/service.key
+          
+      - name: Run Consumer Pipeline
+        env:
+          ENDPOINT: ${{ secrets.ENDPOINT }}
+          ACCESS_KEY_ID: ${{ secrets.ACCESS_KEY_ID }}
+          SECRET_ACCESS_KEY: ${{ secrets.SECRET_ACCESS_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          AIVEN_KAFKA_URI: ${{ secrets.AIVEN_KAFKA_URI }}
+          NEON_POSTGRES_CONN_STR: ${{ secrets.NEON_POSTGRES_CONN_STR }}
+          KAFKA_SECURITY_PROTOCOL: SSL
+          KAFKA_SSL_CA_LOCATION: aiven_test/ca.pem
+          KAFKA_SSL_CERT_LOCATION: aiven_test/service.cert
+          KAFKA_SSL_KEY_LOCATION: aiven_test/service.key
+        run: |
+          export PYTHONPATH="."
+          python src/stream_pipeline/stream_transformer.py &
+          python src/stream_pipeline/stream_loader.py &
+          python src/stream_pipeline/telegram_notifier.py &
+          wait

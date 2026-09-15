@@ -47,6 +47,8 @@ class BaseKafkaConsumer:
             "auto.offset.reset": "earliest",                                    # Read from beginning if no committed offset exists
             "enable.auto.commit": False,                                        # Manual commit after successful DB write to prevent data loss
             "session.timeout.ms": 45000,                                        # Max heartbeat wait time before broker triggers rebalance
+            "max.poll.interval.ms": 900000,                                     # 15 minutes max for cloud I/O
+            "max.poll.interval.ms": 900000,                                     # 15 minutes max for cloud I/O
         }
 
         if additional_config:
@@ -67,6 +69,7 @@ class BaseKafkaConsumer:
         self,
         process_callback: Callable[[str, Dict[str, Any]], None], # process what we hear from kafka, then deliver to next step
         poll_timeout: float = 1.0,
+        idle_timeout: Optional[float] = None,
     ) -> None:
         """
         Continuously poll for messages and dispatch them to ``process_callback``.
@@ -78,17 +81,26 @@ class BaseKafkaConsumer:
             process_callback: Callable receiving ``(message_key, message_value)``
                 for each delivered message.
             poll_timeout: Seconds to block waiting for a new message per cycle.
+            idle_timeout: Seconds to wait for new messages before gracefully shutting down.
         """
+        import time
         try:
             self.consumer.subscribe(self.topics)
             self.is_running = True
             logger.info("Subscribed to topics %s. Polling for messages...", self.topics)
+            
+            last_message_time = time.time()
 
             while self.is_running:
                 msg = self.consumer.poll(timeout=poll_timeout)
 
                 if msg is None:
+                    if idle_timeout and (time.time() - last_message_time) > idle_timeout:
+                        logger.info(f"Idle timeout of {idle_timeout}s reached. Shutting down gracefully.")
+                        break
                     continue  # No message received in this poll cycle
+                
+                last_message_time = time.time()
 
                 if msg.error():
                     err_code = msg.error().code()

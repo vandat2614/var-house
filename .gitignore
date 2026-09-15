@@ -33,3 +33,7 @@ data/
 logs/
 *.log
 postgres_data/
+
+
+demo_gh_action/
+aiven_test/

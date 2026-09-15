@@ -113,7 +113,7 @@ class TelegramNotifier:
     def start(self) -> None:
         logger.info("Starting Telegram Notifier...")
         try:
-            self.consumer.consume_stream(self.process_match_for_telegram)
+            self.consumer.consume_stream(self.process_match_for_telegram, idle_timeout=120.0)
         except KeyboardInterrupt:
             pass
 

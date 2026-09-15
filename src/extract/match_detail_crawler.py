@@ -15,7 +15,7 @@ from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
 from src.extract.utils import fetch_html, extract_next_data
-from src.utils import save_json, load_json
+from src.utils import save_json, load_json, file_exists
 
 logger = logging.getLogger(__name__)
 
@@ -36,8 +36,8 @@ def _cache_path(match_id: str, season: str = None, league_slug: str = None) -> s
     season = season or CURRENT_SEASON
     season_safe = season.replace("/", "_").replace("-", "_")
     league_slug = league_slug or "unknown"
-    path = os.path.join(RAW_DIR, season_safe, league_slug, f"{match_id}.json")
-    os.makedirs(os.path.dirname(path), exist_ok=True)
+    path = os.path.join(RAW_DIR, season_safe, league_slug, f"{match_id}.json").replace("\\", "/")
+    
     return path
 
 
@@ -83,7 +83,7 @@ def crawl_match_detail(
     """
     cache_path = _cache_path(match_id, season=season, league_slug=league_slug)
 
-    if not force_refresh and os.path.exists(cache_path):
+    if not force_refresh and file_exists(cache_path):
         logger.info(f"  [Cache] Loaded match {match_id} from: {cache_path}")
         content = load_json(cache_path)
         if kafka_producer:
