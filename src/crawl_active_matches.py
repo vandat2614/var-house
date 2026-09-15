@@ -8,30 +8,19 @@ from src.kafka.producer import BaseKafkaProducer
 from src.config import KAFKA_BOOTSTRAP_SERVERS
 
 # Import the fixture utils that we saved
-from archive.airflow_legacy.dags.utils.fixture_utils import get_active_matches
+from src.utils import get_pending_matches_to_crawl
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 def main():
     logger.info("Starting active matches crawl...")
-    active_matches = get_active_matches()
+    matches_to_crawl = get_pending_matches_to_crawl()[:3]
     
-    if not active_matches:
-        logger.info("No active matches found for the next 7 days.")
+    if not matches_to_crawl:
+        logger.info("No pending matches found to crawl.")
         return
 
-    now = datetime.now(pytz.UTC)
-    matches_to_crawl = []
-    
-    for match in active_matches:
-        if now >= match['target_time']:
-            matches_to_crawl.append(match)
-            
-    if not matches_to_crawl:
-        logger.info(f"Found {len(active_matches)} active matches, but none are ready to be crawled yet (target_time > now).")
-        return
-        
     logger.info(f"Found {len(matches_to_crawl)} matches ready to be crawled.")
     
     producer = BaseKafkaProducer(bootstrap_servers=KAFKA_BOOTSTRAP_SERVERS)

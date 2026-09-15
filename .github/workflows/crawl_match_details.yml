@@ -20,10 +20,10 @@ jobs:
         
       - name: Setup Kafka SSL Certs
         run: |
-          mkdir -p aiven_test
-          echo "${{ secrets.KAFKA_CA_PEM }}" > aiven_test/ca.pem
-          echo "${{ secrets.KAFKA_SERVICE_CERT }}" > aiven_test/service.cert
-          echo "${{ secrets.KAFKA_SERVICE_KEY }}" > aiven_test/service.key
+          mkdir -p kafka_certs
+          echo "${{ secrets.KAFKA_CA_PEM }}" > kafka_certs/ca.pem
+          echo "${{ secrets.KAFKA_SERVICE_CERT }}" > kafka_certs/service.cert
+          echo "${{ secrets.KAFKA_SERVICE_KEY }}" > kafka_certs/service.key
           
       - name: Run Match Details Crawler
         env:
@@ -34,9 +34,9 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           AIVEN_KAFKA_URI: ${{ secrets.AIVEN_KAFKA_URI }}
           KAFKA_SECURITY_PROTOCOL: SSL
-          KAFKA_SSL_CA_LOCATION: aiven_test/ca.pem
-          KAFKA_SSL_CERT_LOCATION: aiven_test/service.cert
-          KAFKA_SSL_KEY_LOCATION: aiven_test/service.key
+          KAFKA_SSL_CA_LOCATION: kafka_certs/ca.pem
+          KAFKA_SSL_CERT_LOCATION: kafka_certs/service.cert
+          KAFKA_SSL_KEY_LOCATION: kafka_certs/service.key
         run: |
           export PYTHONPATH="."
           python src/crawl_active_matches.py
