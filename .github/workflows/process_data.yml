@@ -36,7 +36,7 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           AIVEN_KAFKA_URI: ${{ secrets.AIVEN_KAFKA_URI }}
-          NEON_POSTGRES_CONN_STR: ${{ secrets.NEON_POSTGRES_CONN_STR }}
+          POSTGRES_URI: ${{ secrets.NEON_POSTGRES_CONN_STR }}
           KAFKA_SECURITY_PROTOCOL: SSL
           KAFKA_SSL_CA_LOCATION: aiven_test/ca.pem
           KAFKA_SSL_CERT_LOCATION: aiven_test/service.cert
