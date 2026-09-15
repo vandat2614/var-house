@@ -1,4 +1,4 @@
-name: Process Match Data (Consumer)
+name: Consumer: Loader
 
 on:
   # Triggers when Crawl Match Details completes successfully
@@ -43,7 +43,6 @@ jobs:
           KAFKA_SSL_KEY_LOCATION: kafka_certs/service.key
         run: |
           export PYTHONPATH="."
-          python src/stream_pipeline/stream_transformer.py &
-          python src/stream_pipeline/stream_loader.py &
-          python src/stream_pipeline/telegram_notifier.py &
-          wait
+          python src/stream_pipeline/stream_loader.py
+
+

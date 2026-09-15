@@ -1,0 +1,49 @@
+name: Consumer: Notifier
+
+on:
+  # Triggers when Crawl Match Details completes successfully
+  workflow_run:
+    workflows: ["Consumer: Transformer"]
+    types:
+      - completed
+  workflow_dispatch:
+
+jobs:
+  consume-data:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+        
+      - name: Setup Kafka SSL Certs
+        run: |
+          mkdir -p kafka_certs
+          echo "${{ secrets.KAFKA_CA_PEM }}" > kafka_certs/ca.pem
+          echo "${{ secrets.KAFKA_SERVICE_CERT }}" > kafka_certs/service.cert
+          echo "${{ secrets.KAFKA_SERVICE_KEY }}" > kafka_certs/service.key
+          
+      - name: Run Consumer Pipeline
+        env:
+          ENDPOINT: ${{ secrets.ENDPOINT }}
+          ACCESS_KEY_ID: ${{ secrets.ACCESS_KEY_ID }}
+          SECRET_ACCESS_KEY: ${{ secrets.SECRET_ACCESS_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          KAFKA_BOOTSTRAP_SERVERS: ${{ secrets.KAFKA_BOOTSTRAP_SERVERS }}
+          POSTGRES_URI: ${{ secrets.NEON_POSTGRES_CONN_STR }}
+          KAFKA_SECURITY_PROTOCOL: SSL
+          KAFKA_SSL_CA_LOCATION: kafka_certs/ca.pem
+          KAFKA_SSL_CERT_LOCATION: kafka_certs/service.cert
+          KAFKA_SSL_KEY_LOCATION: kafka_certs/service.key
+        run: |
+          export PYTHONPATH="."
+          python src/stream_pipeline/telegram_notifier.py
+
+
+
