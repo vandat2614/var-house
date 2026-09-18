@@ -20,10 +20,11 @@ jobs:
         
       - name: Run Fixtures Crawler
         env:
-          ENDPOINT: ${{ secrets.ENDPOINT }}
-          ACCESS_KEY_ID: ${{ secrets.ACCESS_KEY_ID }}
-          SECRET_ACCESS_KEY: ${{ secrets.SECRET_ACCESS_KEY }}
-          POSTGRES_URI: ${{ secrets.NEON_POSTGRES_CONN_STR }}
+          R2_ENDPOINT: ${{ secrets.ENDPOINT }}
+          R2_BUCKET_NAME: "var-house-prod"
+          R2_ACCESS_KEY_ID: ${{ secrets.ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.SECRET_ACCESS_KEY }}
+          NEON_POSTGRES_URI: ${{ secrets.NEON_POSTGRES_CONN_STR }}
         run: |
           export PYTHONPATH="."
           python -m src.jobs.crawl_fixtures
