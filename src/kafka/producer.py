@@ -12,6 +12,7 @@ from typing import Any, Dict, Optional
 from src.config import KAFKA_BOOTSTRAP_SERVERS, KAFKA_SECURITY_PROTOCOL, KAFKA_SSL_CA_LOCATION, KAFKA_SSL_CERT_LOCATION, KAFKA_SSL_KEY_LOCATION
 
 from confluent_kafka import Producer
+from confluent_kafka.admin import AdminClient, NewTopic
 
 logger = logging.getLogger(__name__)
 
@@ -53,12 +54,44 @@ class BaseKafkaProducer:
                 'ssl.certificate.location': KAFKA_SSL_CERT_LOCATION,
                 'ssl.key.location': KAFKA_SSL_KEY_LOCATION,
             })
+        self._admin_config = {
+            "bootstrap.servers": config["bootstrap.servers"]
+        }
+        if KAFKA_SECURITY_PROTOCOL == "SSL":
+            self._admin_config.update({
+                'security.protocol': 'SSL',
+                'ssl.ca.location': KAFKA_SSL_CA_LOCATION,
+                'ssl.certificate.location': KAFKA_SSL_CERT_LOCATION,
+                'ssl.key.location': KAFKA_SSL_KEY_LOCATION,
+            })
+            
         self.producer = Producer(config)
+        self._known_topics = set()
         logger.info("Initialized Kafka Producer connected to %s", bootstrap_servers or KAFKA_BOOTSTRAP_SERVERS)
 
     # ------------------------------------------------------------------
     # Private helpers
     # ------------------------------------------------------------------
+    
+    def _ensure_topic_exists(self, topic: str) -> None:
+        if topic in self._known_topics:
+            return
+            
+        admin = AdminClient(self._admin_config)
+        metadata = admin.list_topics(timeout=10)
+        
+        if topic not in metadata.topics:
+            logger.info("Topic '%s' does not exist. Creating...", topic)
+            new_topic = NewTopic(topic, num_partitions=1, replication_factor=1)
+            fs = admin.create_topics([new_topic])
+            for t, f in fs.items():
+                try:
+                    f.result()  # wait for completion
+                    logger.info("Successfully created topic '%s'", t)
+                except Exception as e:
+                    logger.error("Failed to create topic '%s': %s", t, e)
+                    
+        self._known_topics.add(topic)
 
     @staticmethod
     def _delivery_report(err, msg) -> None:
@@ -103,6 +136,8 @@ class BaseKafkaProducer:
             key: Partition key (e.g. ``match_id``) to guarantee ordering.
             value: Payload dict serialized as JSON.
         """
+        self._ensure_topic_exists(topic)
+        
         # Drain any pending delivery report callbacks from previous calls
         self.producer.poll(0)
 
