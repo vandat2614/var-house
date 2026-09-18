@@ -11,7 +11,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger("FixtureCrawlerScript")
 
 def main():
-    from src.extract.fixture_crawler import crawl_all_fixtures
+    from src.etl.extract.fixture_crawler import crawl_all_fixtures
         
     
     logger.info("Starting Fixture Crawl...")

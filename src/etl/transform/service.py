@@ -2,7 +2,7 @@ import logging
 import os
 from typing import Any, Dict, Tuple
 
-from src.transform.match_detail_transformer import transform_match_detail
+from src.etl.transform.match_detail_transformer import transform_match_detail
 from src.utils import save_json
 from src.config import TRANSFORMED_DIR
 

@@ -26,5 +26,5 @@ jobs:
           POSTGRES_URI: ${{ secrets.NEON_POSTGRES_CONN_STR }}
         run: |
           export PYTHONPATH="."
-          python src/crawl_fixtures.py
+          python -m src.jobs.crawl_fixtures
 

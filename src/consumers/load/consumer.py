@@ -10,7 +10,7 @@ from typing import Any, Dict
 
 from src.kafka import BaseKafkaConsumer
 from src.config import KAFKA_BOOTSTRAP_SERVERS
-from src.load.service import MatchLoadService
+from src.etl.load.service import MatchLoadService
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("StreamLoader")

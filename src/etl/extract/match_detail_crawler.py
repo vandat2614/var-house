@@ -10,39 +10,27 @@ Raw JSON content is cached locally under data/raw/matches/{season}/{league_slug}
 """
 
 import os
-from src.config import RAW_MATCHES_DIR, CURRENT_SEASON, MATCH_BUFFER_HOURS, LEAGUES
+from src.config import RAW_MATCHES_DIR, CRAWL_CURRENT_SEASON, CRAWL_MATCH_BUFFER_HOURS, LEAGUES
 from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, List, Optional, Tuple
 
-from src.extract.utils import fetch_html, extract_next_data
+from src.etl.extract.utils import fetch_html, extract_next_data
 from src.utils import save_json, load_json, file_exists
 
 logger = logging.getLogger(__name__)
 
-
-# ---------------------------------------------------------------------------
-# Constants
-# ---------------------------------------------------------------------------
-
-
 RAW_DIR = RAW_MATCHES_DIR
 
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
 def _cache_path(match_id: str, season: str = None, league_slug: str = None) -> str:
-    season = season or CURRENT_SEASON
+    season = season or CRAWL_CURRENT_SEASON
     season_safe = season.replace("/", "_").replace("-", "_")
     league_slug = league_slug or "unknown"
     path = os.path.join(RAW_DIR, season_safe, league_slug, f"{match_id}.json").replace("\\", "/")
     
     return path
 
-
 def _is_ready_to_fetch(utc_time_str: str) -> bool:
-    """Return True if kickoff + MATCH_BUFFER_HOURS < current UTC time.
+    """Return True if kickoff + CRAWL_MATCH_BUFFER_HOURS < current UTC time.
 
     Uses only the stdlib ``datetime`` module — no pandas dependency needed
     for a simple ISO-8601 timestamp comparison.
@@ -53,14 +41,9 @@ def _is_ready_to_fetch(utc_time_str: str) -> bool:
         # Normalise the trailing 'Z' that FotMob appends (not valid in Python < 3.11)
         normalised = utc_time_str.replace("Z", "+00:00")
         kickoff = datetime.fromisoformat(normalised)
-        return kickoff + timedelta(hours=MATCH_BUFFER_HOURS) < datetime.now(timezone.utc)
+        return kickoff + timedelta(hours=CRAWL_MATCH_BUFFER_HOURS) < datetime.now(timezone.utc)
     except (ValueError, TypeError):
         return False
-
-
-# ---------------------------------------------------------------------------
-# Public API
-# ---------------------------------------------------------------------------
 
 def crawl_match_detail(
     match_id: str,
@@ -110,7 +93,4 @@ def crawl_match_detail(
 
     logger.info(f"  -> Successfully extracted raw data. Saved: {cache_path}")
     return content
-
-
-
 

@@ -43,7 +43,7 @@ jobs:
           KAFKA_SSL_KEY_LOCATION: kafka_certs/service.key
         run: |
           export PYTHONPATH="."
-          python src/stream_pipeline/stream_transformer.py
+          python -m src.consumers.transform.consumer
 
 
 

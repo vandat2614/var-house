@@ -12,11 +12,11 @@ _SRC_DIR = os.path.dirname(os.path.abspath(__file__))
 # Fallback to 2 levels up if PROJECT_ROOT is not set or empty
 PROJECT_ROOT = os.getenv("PROJECT_ROOT") or os.path.abspath(os.path.join(_SRC_DIR, ".."))
 
-S3_ENDPOINT = os.getenv("ENDPOINT", "")
-S3_BUCKET_NAME = os.getenv("BUCKET_NAME", "var-house-prod")
+R2_ENDPOINT = os.getenv("R2_ENDPOINT", "")
+R2_BUCKET_NAME = os.getenv("R2_BUCKET_NAME", "var-house-prod")
 
-if S3_ENDPOINT and S3_BUCKET_NAME:
-    DATA_DIR = f"s3://{S3_BUCKET_NAME}/data"
+if R2_ENDPOINT and R2_BUCKET_NAME:
+    DATA_DIR = f"s3://{R2_BUCKET_NAME}/data"
 else:
     DATA_DIR = os.path.join(PROJECT_ROOT, "data")
 RAW_FIXTURES_DIR = os.path.join(DATA_DIR, "raw", "fixtures")
@@ -27,11 +27,11 @@ ICEBERG_WAREHOUSE_DIR = os.path.join(DATA_DIR, "iceberg", "warehouse")
 ICEBERG_CATALOG_DB = os.path.join(DATA_DIR, "iceberg", "iceberg_catalog.db")
 
 # --- Cloud Storage (Neon.tech + Cloudflare R2) ---
-ICEBERG_POSTGRES_URI = os.getenv("POSTGRES_URI", "")
-S3_ENDPOINT = os.getenv("ENDPOINT", "")
-S3_ACCESS_KEY_ID = os.getenv("ACCESS_KEY_ID", "")
-S3_SECRET_ACCESS_KEY = os.getenv("SECRET_ACCESS_KEY", "")
-S3_BUCKET_NAME = os.getenv("BUCKET_NAME", "var-house-prod")
+NEON_POSTGRES_URI = os.getenv("NEON_POSTGRES_URI", "")
+R2_ENDPOINT = os.getenv("R2_ENDPOINT", "")
+R2_ACCESS_KEY_ID = os.getenv("R2_ACCESS_KEY_ID", "")
+R2_SECRET_ACCESS_KEY = os.getenv("R2_SECRET_ACCESS_KEY", "")
+R2_BUCKET_NAME = os.getenv("R2_BUCKET_NAME", "var-house-prod")
 
 
 # --- Kafka ---
@@ -42,8 +42,8 @@ KAFKA_SSL_CERT_LOCATION = os.getenv("KAFKA_SSL_CERT_LOCATION", "")
 KAFKA_SSL_KEY_LOCATION = os.getenv("KAFKA_SSL_KEY_LOCATION", "")
 
 # --- Crawler Configs ---
-CURRENT_SEASON = os.getenv("CURRENT_SEASON", "2026-2027")
-MATCH_BUFFER_HOURS = int(os.getenv("MATCH_BUFFER_HOURS", 2))
+CRAWL_CURRENT_SEASON = os.getenv("CRAWL_CURRENT_SEASON", "2026-2027")
+CRAWL_MATCH_BUFFER_HOURS = int(os.getenv("CRAWL_MATCH_BUFFER_HOURS", 2))
 
 LEAGUES: Dict[str, Dict[str, Any]] = {
     "premier_league": {"fotmob_id": 47, "name": "Premier League"},

@@ -4,8 +4,8 @@ import pyarrow as pa
 from pyiceberg.exceptions import TableAlreadyExistsError
 from pyiceberg.expressions import In, EqualTo
 
-from src.load.iceberg_catalog import get_catalog, get_namespace_for_season, ensure_namespace
-from src.load.iceberg_schemas import (
+from src.etl.load.iceberg_catalog import get_catalog, get_namespace_for_season, ensure_namespace
+from src.etl.load.iceberg_schemas import (
     DIM_MATCH_SCHEMA, DIM_TEAM_SCHEMA, DIM_PLAYER_SCHEMA,
     FACT_EVENT_SCHEMA, FACT_LINEUP_SCHEMA
 )
@@ -55,7 +55,6 @@ def _bulk_upsert_dimension_iceberg(table_name: str, models: List[Any], schema, p
     df = pa.Table.from_pylist(dicts, schema=arrow_schema)
     table.append(df)
     logger.info(f"[Iceberg] Upserted {len(models)} rows into {namespace}.{table_name}")
-
 
 def _delete_existing_fact_records(match_id: str, namespace: str = "football"):
     """Delete all fact records for a specific match_id to ensure idempotency."""

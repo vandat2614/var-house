@@ -3,7 +3,7 @@ import pytz
 from datetime import datetime
 
 # Import Kafka producer and Match detail crawler
-from src.extract.match_detail_crawler import crawl_match_detail
+from src.etl.extract.match_detail_crawler import crawl_match_detail
 from src.kafka.producer import BaseKafkaProducer
 from src.config import KAFKA_BOOTSTRAP_SERVERS
 

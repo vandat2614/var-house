@@ -12,7 +12,7 @@ import os
 from typing import Any, Dict
 
 from src.kafka import BaseKafkaConsumer, BaseKafkaProducer
-from src.transform.service import MatchTransformService
+from src.etl.transform.service import MatchTransformService
 from src.config import KAFKA_BOOTSTRAP_SERVERS
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")

@@ -27,7 +27,7 @@ from typing import Any, Dict, List, Optional
 logger = logging.getLogger(__name__)
 
 
-CURRENT_SEASON = "2026-2027"
+CRAWL_CURRENT_SEASON = "2026-2027"
 TRANSFORMED_DIR = os.path.join("data", "transformed", "fixtures")
 
 
@@ -68,7 +68,7 @@ def transform_fixture(raw: Dict[str, Any], league_slug: str) -> Dict[str, Any]:
     return {
         "match_id":       str(raw.get("id", "")),
         "league_slug":    league_slug,
-        "season":         CURRENT_SEASON,
+        "season":         CRAWL_CURRENT_SEASON,
         "round":          int(raw.get("roundName") or raw.get("round") or 0),
         "home_team_id":   str(raw.get("home", {}).get("id", "")),
         "home_team_name": raw.get("home", {}).get("name", ""),
@@ -147,7 +147,7 @@ def save_fixtures(records: List[Dict[str, Any]], league_slug: str) -> str:
         Path of the saved file.
     """
     # os.makedirs(TRANSFORMED_DIR, exist_ok=True)
-    path = os.path.join(TRANSFORMED_DIR, f"{league_slug}_{CURRENT_SEASON}.json")
+    path = os.path.join(TRANSFORMED_DIR, f"{league_slug}_{CRAWL_CURRENT_SEASON}.json")
     from src.utils import save_json
     save_json(records, path)
     logger.info(f"[Saved Transformed Fixtures] {len(records)} records -> {path}")

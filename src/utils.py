@@ -4,7 +4,7 @@ import logging
 import re
 from datetime import datetime, timedelta, timezone
 import dateutil.parser
-from src.config import CURRENT_SEASON, TRANSFORMED_DIR
+from src.config import CRAWL_CURRENT_SEASON, TRANSFORMED_DIR
 
 from typing import Any, List
 
@@ -14,12 +14,12 @@ def _get_fs_and_path(path: str):
     path = path.replace("\\", "/")
     if path.startswith("s3://"):
         import s3fs
-        from src.config import S3_ENDPOINT, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY
+        from src.config import R2_ENDPOINT, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY
         fs = s3fs.S3FileSystem(
             client_kwargs={
-                "endpoint_url": S3_ENDPOINT,
-                "aws_access_key_id": S3_ACCESS_KEY_ID,
-                "aws_secret_access_key": S3_SECRET_ACCESS_KEY
+                "endpoint_url": R2_ENDPOINT,
+                "aws_access_key_id": R2_ACCESS_KEY_ID,
+                "aws_secret_access_key": R2_SECRET_ACCESS_KEY
             }
         )
         # s3fs expects path without s3:// prefix for some operations, but open() supports it.
@@ -74,7 +74,7 @@ def get_season_safe(season: str) -> str:
     return season.replace('/', '_').replace('-', '_')
 
 def is_match_crawled(match_id: str) -> bool:
-    season_safe = get_season_safe(CURRENT_SEASON)
+    season_safe = get_season_safe(CRAWL_CURRENT_SEASON)
     season_dir = os.path.join(TRANSFORMED_DIR, "match-details", season_safe).replace("\\", "/")
 
     if not file_exists(season_dir):
@@ -87,7 +87,7 @@ def is_match_crawled(match_id: str) -> bool:
     return False
 
 def get_fixtures():
-    season_safe = get_season_safe(CURRENT_SEASON)
+    season_safe = get_season_safe(CRAWL_CURRENT_SEASON)
     season_path = os.path.join(TRANSFORMED_DIR, "fixtures", season_safe).replace("\\", "/")
     all_fixtures = []
 

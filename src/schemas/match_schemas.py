@@ -8,11 +8,7 @@ from typing import List, Optional
 from pydantic import BaseModel
 from pydantic import BaseModel, Field
 
-
-# ---------------------------------------------------------------------------
 # 1. Match Dimension Schema
-# ---------------------------------------------------------------------------
-
 class DimMatch(BaseModel):
     """Schema representing a match fixture (dim_match table)."""
     match_id: str = Field(description="FotMob unique match identifier")
@@ -28,22 +24,14 @@ class DimMatch(BaseModel):
     home_score: Optional[int] = Field(default=None, description="Final score for home team")
     away_score: Optional[int] = Field(default=None, description="Final score for away team")
 
-
-# ---------------------------------------------------------------------------
 # 2. Team Dimension Schema
-# ---------------------------------------------------------------------------
-
 class DimTeam(BaseModel):
     """Schema representing a team (dim_team table)."""
     team_id: str = Field(description="FotMob unique team identifier")
     team_name: str = Field(description="Full team name, e.g., Arsenal")
     short_name: Optional[str] = Field(default=None, description="Short/abbreviated team name, e.g., Arsenal")
 
-
-# ---------------------------------------------------------------------------
 # 3. Player Dimension Schema
-# ---------------------------------------------------------------------------
-
 class DimPlayer(BaseModel):
     """Schema representing a player (dim_player table)."""
     player_id: str = Field(description="FotMob unique player identifier")
@@ -53,11 +41,7 @@ class DimPlayer(BaseModel):
     age: Optional[int] = Field(default=None, description="Player age")
     country: Optional[str] = Field(default=None, description="Player nationality / country")
 
-
-# ---------------------------------------------------------------------------
 # 4. Fact Events Schema
-# ---------------------------------------------------------------------------
-
 class FactEvent(BaseModel):
     """Schema representing a single in-match event (fact_event table)."""
     id: Optional[int] = Field(default=None)
@@ -79,11 +63,7 @@ class FactEvent(BaseModel):
     new_score_home: Optional[int] = Field(default=None, description="Home team score after event")
     new_score_away: Optional[int] = Field(default=None, description="Away team score after event")
 
-
-# ---------------------------------------------------------------------------
 # 5. Fact Lineup Schema
-# ---------------------------------------------------------------------------
-
 class FactLineup(BaseModel):
     """Schema representing a player in match lineup/roster (fact_lineup table)."""
     id: Optional[int] = Field(default=None)
@@ -99,11 +79,7 @@ class FactLineup(BaseModel):
     age: Optional[int] = Field(default=None, description="Player age")
     country: Optional[str] = Field(default=None, description="Player nationality")
 
-
-# ---------------------------------------------------------------------------
 # 6. Fact Team Stats Schema
-# ---------------------------------------------------------------------------
-
 class FactStats(BaseModel):
     """Schema representing team match statistics (fact_stats table)."""
     id: Optional[int] = Field(default=None)
@@ -115,11 +91,7 @@ class FactStats(BaseModel):
     home_value: Optional[str] = Field(default=None, description="Home team stat value")
     away_value: Optional[str] = Field(default=None, description="Away team stat value")
 
-
-# ---------------------------------------------------------------------------
 # 7. Fact Player Stats Schema
-# ---------------------------------------------------------------------------
-
 class FactPlayerStats(BaseModel):
     """Schema representing individual player statistics per match (fact_player_stats table)."""
     id: Optional[int] = Field(default=None)
@@ -134,11 +106,7 @@ class FactPlayerStats(BaseModel):
     value: str = Field(description="Primary numeric/stat value as string")
     value_total: Optional[str] = Field(default=None, description="Total/denominator for fraction stats")
 
-
-# ---------------------------------------------------------------------------
 # 8. Combined Match Detail Container Schema
-# ---------------------------------------------------------------------------
-
 class MatchDetailBundle(BaseModel):
     """Container holding all fact tables for a match detail payload."""
     match: Optional[DimMatch] = None

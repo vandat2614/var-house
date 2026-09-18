@@ -5,10 +5,10 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 import logging
 import dateutil.parser
 from datetime import datetime, timezone, timedelta
-from src.extract.match_detail_crawler import crawl_match_detail
-from dags.utils.fixture_utils import get_fixtures, is_match_crawled
+from src.etl.extract.match_detail_crawler import crawl_match_detail
+from src.utils import get_fixtures, is_match_crawled
 from src.kafka.producer import BaseKafkaProducer
-from src.config import KAFKA_BOOTSTRAP_SERVERS, MATCH_BUFFER_HOURS
+from src.config import KAFKA_BOOTSTRAP_SERVERS, CRAWL_MATCH_BUFFER_HOURS
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
@@ -34,7 +34,7 @@ def get_missing_historical_matches(days_back: int = 0) -> list:
             continue
             
         kickoff = dateutil.parser.parse(utc_str)
-        target_time = kickoff + timedelta(hours=MATCH_BUFFER_HOURS)
+        target_time = kickoff + timedelta(hours=CRAWL_MATCH_BUFFER_HOURS)
         
         if target_time < threshold_date:
             if not is_match_crawled(match_id):

@@ -1,0 +1,7 @@
+{
+    "model": "openai/gpt-oss-120b",
+    "temperature": 0.6,
+    "max_completion_tokens": 2048,
+    "top_p": 1.0,
+    "reasoning_effort": "medium"
+}

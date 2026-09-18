@@ -7,42 +7,31 @@ Raw JSON responses are cached locally under data/raw/fixtures/{season}/.
 """
 
 import os
-from src.config import RAW_FIXTURES_DIR, CURRENT_SEASON, LEAGUES, TRANSFORMED_DIR
+from src.config import RAW_FIXTURES_DIR, CRAWL_CURRENT_SEASON, LEAGUES, TRANSFORMED_DIR
 from typing import Any, Dict, List
 
-from src.extract.utils import fetch_html, extract_next_data
+from src.etl.extract.utils import fetch_html, extract_next_data
 from src.utils import save_json, load_json, get_season_safe
 
 logger = logging.getLogger(__name__)
 
-
-# ---------------------------------------------------------------------------
-# Constants
-# ---------------------------------------------------------------------------
-
 RAW_DIR = RAW_FIXTURES_DIR
 
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
 def _cache_path(league_slug: str) -> str:
-    season_safe = get_season_safe(CURRENT_SEASON)
+    season_safe = get_season_safe(CRAWL_CURRENT_SEASON)
     path = os.path.join(RAW_DIR, season_safe, f"{league_slug}.json")
     
     return path
-
 
 def _fetch_raw_fixtures(league_slug: str) -> List[Dict[str, Any]]:
     """Fetches raw fixture data from FotMob for a given league."""
     league = LEAGUES[league_slug]
     url = (
         f"https://www.fotmob.com/leagues/{league['fotmob_id']}/fixtures/{league_slug}"
-        f"?season={CURRENT_SEASON}&group=by-date"
+        f"?season={CRAWL_CURRENT_SEASON}&group=by-date"
     )
 
-    logger.info(f"[Crawl Fixtures] {league['name']} {CURRENT_SEASON}")
+    logger.info(f"[Crawl Fixtures] {league['name']} {CRAWL_CURRENT_SEASON}")
     logger.info(f"  URL: {url}")
 
     next_data = extract_next_data(fetch_html(url), url)
@@ -55,11 +44,10 @@ def _fetch_raw_fixtures(league_slug: str) -> List[Dict[str, Any]]:
         .get("allMatches", [])
     )
 
-
 def _process_and_load_dimensions(all_matches: List[Dict[str, Any]], league_slug: str) -> None:
     """Transforms raw fixtures into Match/Team dimensions and loads them into Iceberg."""
-    from src.transform.fixture_transformer import transform_fixtures, transform_teams_from_fixtures
-    from src.load.iceberg_loader import load_dim_matches, load_dim_teams
+    from src.etl.transform.fixture_transformer import transform_fixtures, transform_teams_from_fixtures
+    from src.etl.load.iceberg_loader import load_dim_matches, load_dim_teams
 
     # --- 1. Transform Block ---
     try:
@@ -68,7 +56,7 @@ def _process_and_load_dimensions(all_matches: List[Dict[str, Any]], league_slug:
         teams = transform_teams_from_fixtures(all_matches)
 
         # Save transformed copies to data/transformed/
-        season_safe = get_season_safe(CURRENT_SEASON)
+        season_safe = get_season_safe(CRAWL_CURRENT_SEASON)
         trans_dir = os.path.join(TRANSFORMED_DIR, "fixtures", season_safe)
         
         matches_data = [m if isinstance(m, dict) else (m.model_dump() if hasattr(m, 'model_dump') else m.dict()) for m in matches]
@@ -89,11 +77,6 @@ def _process_and_load_dimensions(all_matches: List[Dict[str, Any]], league_slug:
     except Exception as e:
         logger.error(f"Failed to load fixtures into Iceberg for {league_slug}: {e}")
 
-
-# ---------------------------------------------------------------------------
-# Public API
-# ---------------------------------------------------------------------------
-
 def crawl_fixtures(
     league_slug: str,
 ) -> List[Dict[str, Any]]:
@@ -112,7 +95,6 @@ def crawl_fixtures(
     _process_and_load_dimensions(all_matches, league_slug)
 
     return all_matches
-
 
 def crawl_all_fixtures() -> Dict[str, List[Dict[str, Any]]]:
     """

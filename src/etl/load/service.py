@@ -2,7 +2,7 @@ import logging
 from typing import Any, Dict
 
 from src.schemas.match_schemas import MatchDetailBundle
-from src.load.iceberg_loader import load_match_detail_iceberg
+from src.etl.load.iceberg_loader import load_match_detail_iceberg
 
 logger = logging.getLogger(__name__)
 

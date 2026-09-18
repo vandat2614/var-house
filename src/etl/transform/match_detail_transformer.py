@@ -2,73 +2,13 @@ import logging
 """
 Match Detail Transformer
 
-Converts raw FotMob match detail content (output of crawl_match_detail)
-into structured records for fact_event and fact_lineup tables.
-
---- fact_event schema ---
-  match_id            str
-  event_type          str       "Goal" | "Card" | "Substitution" | "AddedTime" | ...
-  minute              int|None
-  is_home             bool|None
-  player_id           str
-  player_name         str
-  assist_player_id    str|None
-  assist_player_name  str|None
-  is_own_goal         bool
-  card_type           str|None  "Yellow" | "Red" | None  (only for Card events)
-  player_in_id        str|None  (only for Substitution events)
-  player_in_name      str|None
-  player_out_id       str|None
-  player_out_name     str|None
-  added_time          int|None  minutes added  (only for AddedTime events)
-  new_score_home      int|None
-  new_score_away      int|None
-
---- fact_lineup schema ---
-  match_id      str
-  team_id       str
-  team_name     str
-  player_id     str
-  player_name   str
-  shirt_number  str
-  position_id   str
-  is_starter    bool
-  rating        float|None
-  age           int|None
-  country       str|None
-
---- fact_stats schema ---
-  match_id    str
-  period      str       "All" | "FirstHalf" | "SecondHalf"
-  group       str       e.g. "Top stats", "Shots", "Passes", "Defence" ...
-  stat_key    str       e.g. "BallPossesion", "expected_goals", "corners"
-  stat_title  str       Human-readable label
-  home_value  str       Raw value for home team (always string for consistency)
-  away_value  str       Raw value for away team
-
---- fact_player_stats schema ---
-  match_id    str
-  player_id   str
-  player_name str
-  team_id     str
-  team_name   str
-  group       str       e.g. "Top stats", "Attack", "Defence", "Duels"
-  stat_key    str       e.g. "goals", "accurate_passes", "rating_title"
-  stat_title  str       Human-readable label
-  value       str       Primary numeric value (always string)
-  value_total str|None  Denominator for fraction stats (e.g. total passes)
+Converts raw FotMob match detail content into structured records for fact tables.
 """
 
 import os
 from typing import Any, Dict, List, Optional
 
 logger = logging.getLogger(__name__)
-
-
-
-# ---------------------------------------------------------------------------
-# Event Transform
-# ---------------------------------------------------------------------------
 
 def _transform_event(ev: Dict[str, Any], match_id: str) -> Optional[Dict[str, Any]]:
     """Transform a single raw event dict into a structured fact_event record."""
@@ -139,7 +79,6 @@ def _transform_event(ev: Dict[str, Any], match_id: str) -> Optional[Dict[str, An
         "new_score_away":     away_score,
     }
 
-
 def transform_events(content: Dict[str, Any], match_id: str) -> List[Dict[str, Any]]:
     """
     Extract and transform all events from a raw match content dict.
@@ -170,11 +109,6 @@ def transform_events(content: Dict[str, Any], match_id: str) -> List[Dict[str, A
     # Sort events by minute (ascending order). Put events with None minute at the end.
     result.sort(key=lambda x: (x.get("minute") is None, x.get("minute")))
     return result
-
-
-# ---------------------------------------------------------------------------
-# Lineup Transform
-# ---------------------------------------------------------------------------
 
 def _transform_player(
     p: Dict[str, Any],
@@ -214,7 +148,6 @@ def _transform_player(
         "country":      str(country) if country else None,
     }
 
-
 def transform_lineups(content: Dict[str, Any], match_id: str) -> List[Dict[str, Any]]:
     """
     Extract and transform lineup (starters + bench) for both teams.
@@ -251,11 +184,6 @@ def transform_lineups(content: Dict[str, Any], match_id: str) -> List[Dict[str, 
 
     return result
 
-
-# ---------------------------------------------------------------------------
-# Stats Transform
-# ---------------------------------------------------------------------------
-
 def transform_stats(content: Dict[str, Any], match_id: str) -> List[Dict[str, Any]]:
     """
     Extract and flatten team stats across all periods (All, FirstHalf, SecondHalf).
@@ -291,11 +219,6 @@ def transform_stats(content: Dict[str, Any], match_id: str) -> List[Dict[str, An
                 })
 
     return result
-
-
-# ---------------------------------------------------------------------------
-# Player Stats Transform
-# ---------------------------------------------------------------------------
 
 def transform_player_stats(content: Dict[str, Any], match_id: str) -> List[Dict[str, Any]]:
     """
@@ -347,13 +270,6 @@ def transform_player_stats(content: Dict[str, Any], match_id: str) -> List[Dict[
                 })
 
     return result
-
-
-
-
-# ---------------------------------------------------------------------------
-# Dimensions Transform
-# ---------------------------------------------------------------------------
 
 def transform_match_info(content: dict, match_id: str) -> dict | None:
     """Extract match information for dim_match."""
@@ -477,11 +393,6 @@ def transform_players(content: dict, match_id: str) -> list[dict]:
                 })
     return result
 
-
-# ---------------------------------------------------------------------------
-# Team Stats Transform (Top Stats only)
-# ---------------------------------------------------------------------------
-
 def transform_top_stats(content: dict, match_id: str) -> list[dict]:
     """
     Extract the 'top_stats' group from match statistics.
@@ -514,10 +425,6 @@ def transform_top_stats(content: dict, match_id: str) -> list[dict]:
                 "away_value":  str(vals[1]) if vals[1] is not None else None,
             })
     return result
-
-# ---------------------------------------------------------------------------
-# Combined
-# ---------------------------------------------------------------------------
 
 def transform_match_detail(
     content: Dict[str, Any],
