@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 def main():
     logger.info("Starting active matches crawl...")
-    matches_to_crawl = get_pending_matches_to_crawl()[:3]
+    matches_to_crawl = get_pending_matches_to_crawl()[:5]
     
     if not matches_to_crawl:
         logger.info("No pending matches found to crawl.")
@@ -42,7 +42,7 @@ def main():
                 logger.error(f"Failed to crawl match {match_id}: {e}", exc_info=True)
                 
     finally:
-        producer.flush(timeout=5.0)
+        producer.flush()
         logger.info("Flushed Kafka producer and finished active matches crawl.")
 
 if __name__ == '__main__':

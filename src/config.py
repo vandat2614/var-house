@@ -47,4 +47,5 @@ CRAWL_MATCH_BUFFER_HOURS = int(os.getenv("CRAWL_MATCH_BUFFER_HOURS", 2))
 
 LEAGUES: Dict[str, Dict[str, Any]] = {
     "premier_league": {"fotmob_id": 47, "name": "Premier League"},
+    "la_liga": {"fotmob_id": 87, "name": "LaLiga"},
 }

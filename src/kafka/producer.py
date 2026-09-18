@@ -115,7 +115,7 @@ class BaseKafkaProducer:
         except Exception as exc:
             logger.error("Exception while producing message to %s: %s", topic, exc)
 
-    def flush(self, timeout: float = 10.0) -> None:
+    def flush(self, timeout: float = 30.0) -> None:
         """Block until all enqueued messages have been delivered (or timeout)."""
         remaining = self.producer.flush(timeout)
         if remaining > 0:
