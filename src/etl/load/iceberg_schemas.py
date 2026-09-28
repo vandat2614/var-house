@@ -3,12 +3,19 @@ PyIceberg Schema definitions corresponding to the SQLModel schemas.
 """
 from pyiceberg.schema import Schema
 from pyiceberg.types import NestedField, StringType, LongType, IntegerType, DoubleType, BooleanType
+from pyiceberg.partitioning import PartitionSpec, PartitionField
+from pyiceberg.transforms import IdentityTransform
+
+MATCH_PARTITION_SPEC = PartitionSpec(
+    PartitionField(source_id=2, field_id=1000, transform=IdentityTransform(), name="league_slug"),
+    PartitionField(source_id=3, field_id=1001, transform=IdentityTransform(), name="season")
+)
 
 DIM_MATCH_SCHEMA = Schema(
     NestedField(field_id=1, name="match_id", field_type=StringType(), required=True),
     NestedField(field_id=2, name="league_slug", field_type=StringType(), required=True),
     NestedField(field_id=3, name="season", field_type=StringType(), required=True),
-    NestedField(field_id=4, name="round", field_type=LongType(), required=True),
+    NestedField(field_id=4, name="round", field_type=StringType(), required=True),
     NestedField(field_id=5, name="home_team_id", field_type=StringType(), required=True),
     NestedField(field_id=6, name="home_team_name", field_type=StringType(), required=True),
     NestedField(field_id=7, name="away_team_id", field_type=StringType(), required=True),

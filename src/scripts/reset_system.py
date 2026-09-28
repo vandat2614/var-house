@@ -62,13 +62,15 @@ def reset_r2():
                 "aws_secret_access_key": R2_SECRET_ACCESS_KEY
             }
         )
-        bucket_path = f"{R2_BUCKET_NAME}/data"
-        if fs.exists(bucket_path):
-            logger.info(f"Deleting everything in {bucket_path}...")
-            fs.rm(bucket_path, recursive=True)
+        bucket_path = f"{R2_BUCKET_NAME}/"
+        items = fs.ls(bucket_path)
+        if items:
+            for item in items:
+                logger.info(f"Deleting {item}...")
+                fs.rm(item, recursive=True)
             logger.info("R2 data cleared.")
         else:
-            logger.info(f"R2 path {bucket_path} does not exist. Skipping.")
+            logger.info("R2 bucket is already empty.")
     except Exception as e:
         logger.error(f"Failed to clear R2 storage: {e}")
 
@@ -124,7 +126,7 @@ if __name__ == "__main__":
     if confirm.strip().lower() == 'yes':
         print("\\nStarting reset sequence...\\n")
         reset_iceberg()
-        reset_r2()
+        # reset_r2()
         reset_kafka()
         print("\\n✅ System reset complete. You can now test on a clean slate.")
     else:

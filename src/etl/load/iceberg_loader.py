@@ -1,3 +1,4 @@
+from pyiceberg.partitioning import UNPARTITIONED_PARTITION_SPEC
 import logging
 from typing import List, Any
 import pyarrow as pa
@@ -13,7 +14,7 @@ from src.schemas.match_schemas import MatchDetailBundle
 
 logger = logging.getLogger(__name__)
 
-def _ensure_table(table_name: str, schema, namespace: str = "football") -> Any:
+def _ensure_table(table_name: str, schema, namespace: str = "football", partition_spec=None) -> Any:
     """Ensure the table exists in the given namespace and return the PyIceberg table object."""
     catalog = get_catalog()
     ensure_namespace(namespace)
@@ -22,14 +23,15 @@ def _ensure_table(table_name: str, schema, namespace: str = "football") -> Any:
         table = catalog.create_table(
             identifier=table_identifier,
             schema=schema,
-            properties={"format-version": "2"}
+            properties={"format-version": "2"},
+            partition_spec=partition_spec if partition_spec is not None else UNPARTITIONED_PARTITION_SPEC
         )
         logger.info(f"[Iceberg] Created table {table_identifier}")
     except TableAlreadyExistsError:
         table = catalog.load_table(table_identifier)
     return table
 
-def _bulk_upsert_dimension_iceberg(table_name: str, models: List[Any], schema, primary_key: str, namespace: str = "football"):
+def _bulk_upsert_dimension_iceberg(table_name: str, models: List[Any], schema, primary_key: str, namespace: str = "football", partition_spec=None):
     """
     Iceberg doesn't natively support MERGE INTO via simple Python API yet.
     We simulate UPSERT by Deleting existing keys, then Appending.
@@ -37,24 +39,50 @@ def _bulk_upsert_dimension_iceberg(table_name: str, models: List[Any], schema, p
     if not models:
         return
         
-    table = _ensure_table(table_name, schema, namespace)
+    table = _ensure_table(table_name, schema, namespace, partition_spec)
+    
+    # 0. Deduplicate models (crucial for batching multiple seasons together)
+    dicts = [m.model_dump() if hasattr(m, "model_dump") else m for m in models]
+    dedup = {}
+    for d in dicts:
+        dedup[str(d[primary_key])] = d
+    dicts = list(dedup.values())
     
     # 1. Extract IDs to delete
-    dicts = [m.model_dump() if hasattr(m, "model_dump") else m for m in models]
-    ids_to_upsert = [str(d[primary_key]) for d in dicts]
+    ids_to_upsert = list(dedup.keys())
     
-    # 2. Delete existing records with these IDs (Iceberg v2 row-level delete)
+    # 2. Delete existing records (Iceberg v2 row-level or partition-level delete)
     if ids_to_upsert:
-        try:
-            table.delete(In(term=primary_key, literals=ids_to_upsert))
-        except Exception as e:
-            logger.debug(f"[Iceberg] Delete on {table_name} skipped/failed: {e}")
+        if table_name == "dim_match":
+            # Extract unique partitions
+            from pyiceberg.expressions import And, EqualTo
+            partitions = set()
+            for d in dicts:
+                league = str(d.get("league_slug", ""))
+                season = str(d.get("season", ""))
+                if league and season:
+                    partitions.add((league, season))
+            
+            for league, season in partitions:
+                try:
+                    table.delete(And(EqualTo("league_slug", league), EqualTo("season", season)))
+                except Exception as e:
+                    logger.debug(f"[Iceberg] Delete partition {league} {season} skipped/failed: {e}")
+        else:
+            # Chunk row-level deletes to avoid massive IN clauses (e.g., 500 at a time)
+            chunk_size = 500
+            for i in range(0, len(ids_to_upsert), chunk_size):
+                chunk = ids_to_upsert[i:i+chunk_size]
+                try:
+                    table.delete(In(term=primary_key, literals=chunk))
+                except Exception as e:
+                    logger.debug(f"[Iceberg] Delete chunk on {table_name} skipped/failed: {e}")
 
     # 3. Append new data
     arrow_schema = schema.as_arrow()
     df = pa.Table.from_pylist(dicts, schema=arrow_schema)
     table.append(df)
-    logger.info(f"[Iceberg] Upserted {len(models)} rows into {namespace}.{table_name}")
+    logger.info(f"[Iceberg] Upserted {len(dicts)} deduplicated rows into {namespace}.{table_name}")
 
 def _delete_existing_fact_records(match_id: str, namespace: str = "football"):
     """Delete all fact records for a specific match_id to ensure idempotency."""
@@ -125,7 +153,8 @@ def load_dim_matches(matches: List[Any], db_path: str = None):
     """Fallback function name to load matches into Iceberg"""
     if not matches:
         return
-    _bulk_upsert_dimension_iceberg("dim_match", matches, DIM_MATCH_SCHEMA, "match_id")
+    from src.etl.load.iceberg_schemas import MATCH_PARTITION_SPEC
+    _bulk_upsert_dimension_iceberg("dim_match", matches, DIM_MATCH_SCHEMA, "match_id", partition_spec=MATCH_PARTITION_SPEC)
 
 def load_dim_teams(teams: List[Any], db_path: str = None):
     """Fallback function name to load teams into Iceberg"""

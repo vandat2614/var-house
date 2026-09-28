@@ -40,5 +40,5 @@ jobs:
           KAFKA_SSL_KEY_LOCATION: kafka_certs/service.key
         run: |
           export PYTHONPATH="."
-          python -m src.jobs.crawl_active_matches
+          python -m src.scripts.crawl_active_matches
 

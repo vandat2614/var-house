@@ -286,14 +286,14 @@ def transform_match_info(content: dict, match_id: str) -> dict | None:
             
         tournament = ib.get("Tournament", {})
         league_slug = "unknown"
-        round_name = 0
+        round_name = ""
         season = "unknown"
         if isinstance(tournament, dict):
             league_slug = tournament.get("leagueName", "unknown").lower().replace(" ", "_")
             try:
-                round_name = int(tournament.get("round", "0"))
+                round_name = str(tournament.get("round", ""))
             except ValueError:
-                round_name = 0
+                round_name = ""
 
         # Extract season from raw data (e.g. "2026/2027" -> "2026-2027")
         general = content.get("general", {})

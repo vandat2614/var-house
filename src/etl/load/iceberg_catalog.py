@@ -35,7 +35,8 @@ def get_catalog() -> SqlCatalog:
             kwargs["s3.endpoint"] = R2_ENDPOINT
             kwargs["s3.access-key-id"] = R2_ACCESS_KEY_ID
             kwargs["s3.secret-access-key"] = R2_SECRET_ACCESS_KEY
-            kwargs["py-io-impl"] = "pyiceberg.io.fsspec.FsspecFileIO"
+            kwargs["py-io-impl"] = "pyiceberg.io.pyarrow.PyArrowFileIO"
+            kwargs["s3.region"] = "auto"
             logger.info(f"[Iceberg] Connecting to Cloud Catalog -> Neon.tech")
             logger.info(f"[Iceberg] Warehouse path -> s3://{R2_BUCKET_NAME}")
         else:

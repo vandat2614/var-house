@@ -2,95 +2,38 @@ import logging
 """
 Football Match Detail Crawler
 
-For a given match_id, fetches:
-  - Events  : goals, cards, substitutions, VAR (with minute, player, team)
-  - Lineups : starters & bench with shirt number, position, age, country, rating
+Responsibility: EXTRACT only.
+  - Fetch raw HTML from FotMob for a given match_id
+  - Parse __NEXT_DATA__ JSON
+  - Return raw content dict
 
-Raw JSON content is cached locally under data/raw/matches/{season}/{league_slug}/{match_id}.json.
+Does NOT cache, does NOT check match readiness, does NOT publish.
+All orchestration logic (caching, retry scheduling, Kafka) belongs in the caller.
 """
 
-import os
-from src.config import RAW_MATCHES_DIR, CRAWL_CURRENT_SEASON, CRAWL_MATCH_BUFFER_HOURS, LEAGUES
-from datetime import datetime, timezone, timedelta
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict
 
 from src.etl.extract.utils import fetch_html, extract_next_data
-from src.utils import save_json, load_json, file_exists
 
 logger = logging.getLogger(__name__)
 
-RAW_DIR = RAW_MATCHES_DIR
 
-def _cache_path(match_id: str, season: str = None, league_slug: str = None) -> str:
-    season = season or CRAWL_CURRENT_SEASON
-    season_safe = season.replace("/", "_").replace("-", "_")
-    league_slug = league_slug or "unknown"
-    path = os.path.join(RAW_DIR, season_safe, league_slug, f"{match_id}.json").replace("\\", "/")
-    
-    return path
-
-def _is_ready_to_fetch(utc_time_str: str) -> bool:
-    """Return True if kickoff + CRAWL_MATCH_BUFFER_HOURS < current UTC time.
-
-    Uses only the stdlib ``datetime`` module — no pandas dependency needed
-    for a simple ISO-8601 timestamp comparison.
+def crawl_match_detail(match_id: str) -> Dict[str, Any]:
     """
-    if not utc_time_str:
-        return False
-    try:
-        # Normalise the trailing 'Z' that FotMob appends (not valid in Python < 3.11)
-        normalised = utc_time_str.replace("Z", "+00:00")
-        kickoff = datetime.fromisoformat(normalised)
-        return kickoff + timedelta(hours=CRAWL_MATCH_BUFFER_HOURS) < datetime.now(timezone.utc)
-    except (ValueError, TypeError):
-        return False
-
-def crawl_match_detail(
-    match_id: str,
-    force_refresh: bool = False,
-    kafka_producer: Any = None,
-    season: str = None,
-    league_slug: str = None,
-) -> Dict[str, Any]:
-    """
-    Crawl events and lineup for a single match.
+    Fetch raw match content from FotMob for a given match_id.
 
     Args:
-        match_id: FotMob match identifier string (e.g. '5868011').
-        force_refresh: Ignore local cache if True.
-        kafka_producer: Optional producer; when provided, the raw content dict
-            is published to the 'raw-match-details' topic.
+        match_id: FotMob match identifier (e.g. '5868011').
 
     Returns:
-        Dict representing raw match details.
+        Raw content dict from FotMob __NEXT_DATA__.
+        Returns empty dict if content is missing.
     """
-    cache_path = _cache_path(match_id, season=season, league_slug=league_slug)
-
-    if not force_refresh and file_exists(cache_path):
-        logger.info(f"  [Cache] Loaded match {match_id} from: {cache_path}")
-        content = load_json(cache_path)
-        if kafka_producer:
-            kafka_producer.produce_message(
-                topic="raw-match-details",
-                key=match_id,
-                value=content,
-            )
-        return content
-
     url = f"https://www.fotmob.com/match/{match_id}"
-    logger.info(f"  [Crawl Match] ID: {match_id} - {url}")
+    logger.info(f"  [Crawl Match] {match_id} -> {url}")
 
     next_data = extract_next_data(fetch_html(url), url)
     content = next_data.get("props", {}).get("pageProps", {}).get("content", {})
 
-    save_json(content, cache_path)
-    if kafka_producer:
-        kafka_producer.produce_message(
-            topic="raw-match-details",
-            key=match_id,
-            value=content,
-        )
-
-    logger.info(f"  -> Successfully extracted raw data. Saved: {cache_path}")
+    logger.info(f"  -> Fetched raw content for match {match_id}")
     return content
-

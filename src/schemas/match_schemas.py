@@ -14,7 +14,7 @@ class DimMatch(BaseModel):
     match_id: str = Field(description="FotMob unique match identifier")
     league_slug: str = Field(description="League slug identifier, e.g., premier_league")
     season: str = Field(description="Season string, e.g., 2025-2026")
-    round: int = Field(description="Matchweek / Round number")
+    round: str = Field(description="Matchweek / Round number")
     home_team_id: str = Field(description="Home team FotMob ID")
     home_team_name: str = Field(description="Home team name")
     away_team_id: str = Field(description="Away team FotMob ID")

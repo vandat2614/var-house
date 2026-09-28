@@ -1,1 +1,3 @@
-"""Loading and persistence module for Iceberg Data Lake."""
+from src.etl.load.service import LoadService
+
+__all__ = ["LoadService"]

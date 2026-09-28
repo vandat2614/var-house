@@ -43,9 +43,18 @@ KAFKA_SSL_KEY_LOCATION = os.getenv("KAFKA_SSL_KEY_LOCATION", "")
 
 # --- Crawler Configs ---
 CRAWL_CURRENT_SEASON = os.getenv("CRAWL_CURRENT_SEASON", "2026-2027")
+# CRAWL_CURRENT_SEASON = os.getenv("CRAWL_CURRENT_SEASON", "2025-2026")
+FOTMOB_OLDEST_SEASON = os.getenv("FOTMOB_OLDEST_SEASON", "2010-2011")
+# FOTMOB_OLDEST_SEASON = os.getenv("FOTMOB_OLDEST_SEASON", "2021-2022")
 CRAWL_MATCH_BUFFER_HOURS = int(os.getenv("CRAWL_MATCH_BUFFER_HOURS", 2))
 
 LEAGUES: Dict[str, Dict[str, Any]] = {
-    "premier_league": {"fotmob_id": 47, "name": "Premier League"},
-    "la_liga": {"fotmob_id": 87, "name": "LaLiga"},
+    # "premier_league": {"fotmob_id": 47, "name": "Premier League"},
+    # "la_liga": {"fotmob_id": 87, "name": "LaLiga"},
+    # "ligue_1": {"fotmob_id": 53, "name": "Ligue 1"},
+    # "bundesliga": {"fotmob_id": 54, "name": "Bundesliga"},
+    # "serie_a": {"fotmob_id": 55, "name": "Serie A"},
+    "champions_league": {"fotmob_id": 42, "name": "Champions League"},
+    "europa_league": {"fotmob_id": 73, "name": "Europa League"},
+    "conference_league": {"fotmob_id": 10216, "name": "Conference League"},
 }

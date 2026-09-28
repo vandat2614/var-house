@@ -10,7 +10,7 @@ from typing import Any, Dict
 
 from src.kafka import BaseKafkaConsumer
 from src.config import KAFKA_BOOTSTRAP_SERVERS
-from src.etl.load.service import MatchLoadService
+from src.etl.load import LoadService
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("StreamLoader")
@@ -20,10 +20,9 @@ class StreamLoader:
     """
     Terminal Kafka consumer stage that persists match facts to the database.
 
-    Consumes structured ``MatchDetailBundle`` payloads from the
-    'transformed-match-details' topic, validates them through the Pydantic
-    schema, then delegates to :func:`load_match_detail` for an idempotent
-    database upsert.
+    Consumes structured MatchDetailBundle payloads from the
+    'transformed-match-details' topic and delegates to LoadService
+    for an idempotent database upsert.
     """
 
     def __init__(self, bootstrap_servers: str = None):
@@ -32,12 +31,12 @@ class StreamLoader:
             topics=["transformed-match-details"],
             bootstrap_servers=bootstrap_servers or KAFKA_BOOTSTRAP_SERVERS,
         )
-        self.load_service = MatchLoadService()
+        self.load_service = LoadService()
 
     def process_transformed_match(self, match_id: str, payload: Dict[str, Any]) -> None:
         """Callback: delegate validation and persistence to the load service."""
         try:
-            self.load_service.process_and_load(match_id, payload)
+            self.load_service.load_match_detail(match_id, payload)
         except Exception as exc:
             logger.error("Failed to load match %s: %s", match_id, exc)
             raise  # Re-raise so the Consumer does not commit the offset
@@ -53,5 +52,3 @@ class StreamLoader:
 
 if __name__ == "__main__":
     StreamLoader().start()
-
-

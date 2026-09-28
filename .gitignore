@@ -38,3 +38,10 @@ postgres_data/
 demo_gh_action/
 aiven_test/
 certs/
+
+demo_gh_action/
+helper_for_load_other/
+historical_import/
+scratch/
+team_logo/
+src/api
