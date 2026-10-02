@@ -1,11 +1,16 @@
 """
-Entry point for production deployment (Render, Fly.io, etc.)
-Run: uvicorn run:app --host 0.0.0.0 --port \
+Production entry point for Render/Fly.io deployment.
+Start Command: python run.py
 """
 import sys
 import os
 
-# Ensure the project root is in Python path so 'src.*' imports work
+# Inject project root into Python path BEFORE any src.* imports
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from src.api.main import app  # noqa: F401 - exported for uvicorn
+import uvicorn
+from src.api.main import app
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
