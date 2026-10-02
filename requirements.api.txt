@@ -19,3 +19,5 @@ psycopg2-binary
 # --- Utilities ---
 python-dotenv
 sqlalchemy
+numpy
+pandas
