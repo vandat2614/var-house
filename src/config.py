@@ -49,11 +49,11 @@ FOTMOB_OLDEST_SEASON = os.getenv("FOTMOB_OLDEST_SEASON", "2010-2011")
 CRAWL_MATCH_BUFFER_HOURS = int(os.getenv("CRAWL_MATCH_BUFFER_HOURS", 2))
 
 LEAGUES: Dict[str, Dict[str, Any]] = {
-    # "premier_league": {"fotmob_id": 47, "name": "Premier League"},
-    # "la_liga": {"fotmob_id": 87, "name": "LaLiga"},
-    # "ligue_1": {"fotmob_id": 53, "name": "Ligue 1"},
-    # "bundesliga": {"fotmob_id": 54, "name": "Bundesliga"},
-    # "serie_a": {"fotmob_id": 55, "name": "Serie A"},
+    "premier_league": {"fotmob_id": 47, "name": "Premier League"},
+    "la_liga": {"fotmob_id": 87, "name": "LaLiga"},
+    "ligue_1": {"fotmob_id": 53, "name": "Ligue 1"},
+    "bundesliga": {"fotmob_id": 54, "name": "Bundesliga"},
+    "serie_a": {"fotmob_id": 55, "name": "Serie A"},
     "champions_league": {"fotmob_id": 42, "name": "Champions League"},
     "europa_league": {"fotmob_id": 73, "name": "Europa League"},
     "conference_league": {"fotmob_id": 10216, "name": "Conference League"},

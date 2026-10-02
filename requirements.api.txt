@@ -1,0 +1,20 @@
+# ============================================================
+# API Server Requirements (Backend + Frontend serving)
+# Dung file nay de deploy len Render/Fly.io/Koyeb
+# Lenh: pip install -r requirements.api.txt
+# ============================================================
+
+# --- Web Framework ---
+fastapi
+uvicorn[standard]
+
+# --- Database / Data ---
+duckdb
+pyarrow
+pyiceberg[pyarrow,s3fs]
+
+# --- Cloud Storage & Database Catalog ---
+psycopg2-binary
+
+# --- Utilities ---
+python-dotenv
